@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -8,8 +9,6 @@ import (
 	"os"
 	"time"
 )
-
-var apiKey = os.Getenv("REMO_API_KEY")
 
 type realEnvInfo struct {
 	Temperature float64
@@ -54,7 +53,7 @@ func fetchRealEnvInfo() (*realEnvInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("REMO_API_KEY"))
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -76,6 +75,23 @@ func fetchRealEnvInfo() (*realEnvInfo, error) {
 	}, nil
 }
 
+// writeToCSV writes real environment info to CSV
+func writeToCSV(info realEnvInfo) error {
+	f, err := os.OpenFile(os.Getenv("CSV_FILE"), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = f.Close() }()
+
+	w := csv.NewWriter(f)
+	row := fmt.Sprintf("%s, %f, %f, %f, %f", time.Now().Format(time.RFC3339), info.Temperature, info.Humidity, info.Illuminance, info.Motion)
+	if err := w.Write([]string{row}); err != nil {
+		return err
+	}
+	w.Flush()
+	return nil
+}
+
 func main() {
 	info, err := fetchRealEnvInfo()
 	if err != nil {
@@ -83,7 +99,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("========================")
-	fmt.Println(info)
-	fmt.Println("========================")
+	if err := writeToCSV(*info); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Println("===== RESULT =====")
+	fmt.Printf("気温： %f\n", info.Temperature)
+	fmt.Printf("湿度： %f\n", info.Humidity)
+	fmt.Printf("照度： %f\n", info.Illuminance)
+	fmt.Printf("人感： %f\n", info.Motion)
+	fmt.Println("===== RESULT =====")
 }
