@@ -7,14 +7,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
 type realEnvInfo struct {
-	Temperature float64
-	Humidity    float64
-	Illuminance float64
-	Motion      float64
+	Temperature string
+	Humidity    string
+	Illuminance string
+	Motion      string
 }
 
 // fetchRealEnvInfo gets real environment info from Nature Remo API
@@ -67,11 +68,12 @@ func fetchRealEnvInfo() (*realEnvInfo, error) {
 	if err := json.Unmarshal(b, &r); err != nil {
 		return nil, err
 	}
+
 	return &realEnvInfo{
-		Temperature: r[0].NewestEvents.Temperature.Val + r[0].TemperatureOffset,
-		Humidity:    r[0].NewestEvents.Humidity.Val + r[0].HumidityOffset,
-		Illuminance: r[0].NewestEvents.Illuminance.Val,
-		Motion:      r[0].NewestEvents.Motion.Val,
+		Temperature: strconv.FormatFloat(r[0].NewestEvents.Temperature.Val+r[0].TemperatureOffset, 'f', 2, 64),
+		Humidity:    strconv.FormatFloat(r[0].NewestEvents.Humidity.Val+r[0].HumidityOffset, 'f', 2, 64),
+		Illuminance: strconv.FormatFloat(r[0].NewestEvents.Illuminance.Val, 'f', 2, 64),
+		Motion:      strconv.FormatFloat(r[0].NewestEvents.Motion.Val, 'f', 2, 64),
 	}, nil
 }
 
@@ -84,8 +86,7 @@ func writeToCSV(info realEnvInfo) error {
 	defer func() { _ = f.Close() }()
 
 	w := csv.NewWriter(f)
-	row := fmt.Sprintf("%s, %f, %f, %f, %f", time.Now().Format(time.RFC3339), info.Temperature, info.Humidity, info.Illuminance, info.Motion)
-	if err := w.Write([]string{row}); err != nil {
+	if err := w.Write([]string{time.Now().Format(time.RFC3339), info.Temperature, info.Humidity, info.Illuminance, info.Motion}); err != nil {
 		return err
 	}
 	w.Flush()
@@ -105,9 +106,9 @@ func main() {
 	}
 
 	fmt.Println("===== RESULT =====")
-	fmt.Printf("気温： %f\n", info.Temperature)
-	fmt.Printf("湿度： %f\n", info.Humidity)
-	fmt.Printf("照度： %f\n", info.Illuminance)
-	fmt.Printf("人感： %f\n", info.Motion)
+	fmt.Println("気温:", info.Temperature)
+	fmt.Println("湿度:", info.Humidity)
+	fmt.Println("照度:", info.Illuminance)
+	fmt.Println("人感:", info.Motion)
 	fmt.Println("===== RESULT =====")
 }
