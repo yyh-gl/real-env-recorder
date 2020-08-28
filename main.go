@@ -15,7 +15,7 @@ type realEnvInfo struct {
 	Temperature string
 	Humidity    string
 	Illuminance string
-	Motion      string
+	Movement    string
 }
 
 // fetchRealEnvInfo gets real environment info from Nature Remo API
@@ -41,7 +41,7 @@ func fetchRealEnvInfo() (*realEnvInfo, error) {
 				Val       float64   `json:"val"`
 				CreatedAt time.Time `json:"created_at"`
 			} `json:"il"`
-			Motion struct {
+			Movement struct {
 				Val       float64   `json:"val"`
 				CreatedAt time.Time `json:"created_at"`
 			} `json:"mo"`
@@ -73,7 +73,7 @@ func fetchRealEnvInfo() (*realEnvInfo, error) {
 		Temperature: strconv.FormatFloat(r[0].NewestEvents.Temperature.Val+r[0].TemperatureOffset, 'f', 2, 64),
 		Humidity:    strconv.FormatFloat(r[0].NewestEvents.Humidity.Val+r[0].HumidityOffset, 'f', 2, 64),
 		Illuminance: strconv.FormatFloat(r[0].NewestEvents.Illuminance.Val, 'f', 2, 64),
-		Motion:      strconv.FormatFloat(r[0].NewestEvents.Motion.Val, 'f', 2, 64),
+		Movement:      strconv.FormatFloat(r[0].NewestEvents.Movement.Val, 'f', 2, 64),
 	}, nil
 }
 
@@ -86,7 +86,7 @@ func writeToCSV(info realEnvInfo) error {
 	defer func() { _ = f.Close() }()
 
 	w := csv.NewWriter(f)
-	if err := w.Write([]string{time.Now().Format(time.RFC3339), info.Temperature, info.Humidity, info.Illuminance, info.Motion}); err != nil {
+	if err := w.Write([]string{time.Now().Format(time.RFC3339), info.Temperature, info.Humidity, info.Illuminance, info.Movement}); err != nil {
 		return err
 	}
 	w.Flush()
@@ -109,6 +109,6 @@ func main() {
 	fmt.Println("気温:", info.Temperature)
 	fmt.Println("湿度:", info.Humidity)
 	fmt.Println("照度:", info.Illuminance)
-	fmt.Println("人感:", info.Motion)
+	fmt.Println("人感:", info.Movement)
 	fmt.Println("===== RESULT =====")
 }
