@@ -1,0 +1,11 @@
+set title "Temperature";
+set xlabel "Time";
+set ylabel "Temperature";
+set datafile separator ",";
+set xdata time;
+set xtics nomirror;
+set ytics nomirror;
+set timefmt "%Y-%m-%dT%H:%M:%S+09:00";
+set terminal png;
+set out "/tmp/temperature.png";
+plot "`date '+%Y%m'`.csv" using 1:2 with lines;
