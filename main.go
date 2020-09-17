@@ -73,13 +73,14 @@ func fetchRealEnvInfo() (*realEnvInfo, error) {
 		Temperature: strconv.FormatFloat(r[0].NewestEvents.Temperature.Val+r[0].TemperatureOffset, 'f', 2, 64),
 		Humidity:    strconv.FormatFloat(r[0].NewestEvents.Humidity.Val+r[0].HumidityOffset, 'f', 2, 64),
 		Illuminance: strconv.FormatFloat(r[0].NewestEvents.Illuminance.Val, 'f', 2, 64),
-		Movement:      strconv.FormatFloat(r[0].NewestEvents.Movement.Val, 'f', 2, 64),
+		Movement:    strconv.FormatFloat(r[0].NewestEvents.Movement.Val, 'f', 2, 64),
 	}, nil
 }
 
 // writeToCSV writes real environment info to CSV
 func writeToCSV(info realEnvInfo) error {
-	f, err := os.OpenFile(os.Getenv("CSV_FILE"), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	fileName := time.Now().Format("200601.csv")
+	f, err := os.OpenFile("/tmp/"+fileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
